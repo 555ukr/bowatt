@@ -1,0 +1,173 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #fafafa;
+  color: #262626;
+}
+
+/* Navbar */
+.navbar {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  border-bottom: 1px solid #dbdbdb;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  z-index: 100;
+}
+
+.navbar-brand {
+  font-size: 1.4rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #262626;
+}
+
+.navbar a {
+  text-decoration: none;
+  color: #262626;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.navbar a:hover {
+  background: #efefef;
+}
+
+/* Page container */
+.page {
+  max-width: 600px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+/* Feed */
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.feed-card {
+  background: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.feed-card img {
+  width: 100%;
+  display: block;
+}
+
+.feed-card-info {
+  padding: 12px 16px;
+}
+
+.feed-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tag {
+  background: #efefef;
+  color: #555;
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.feed-card-date {
+  font-size: 0.75rem;
+  color: #8e8e8e;
+  margin-top: 8px;
+}
+
+/* Upload form */
+.upload-form {
+  background: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.upload-form h2 {
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+}
+
+.upload-form label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+
+.upload-form input[type="file"],
+.upload-form input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dbdbdb;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.upload-form input[type="text"]:focus {
+  outline: none;
+  border-color: #0095f6;
+}
+
+.upload-btn {
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+  background: #0095f6;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.upload-btn:hover {
+  background: #007bd6;
+}
+
+.upload-btn:disabled {
+  background: #b2dffc;
+  cursor: not-allowed;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: #8e8e8e;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .page {
+    margin: 16px auto;
+  }
+
+  .navbar {
+    padding: 10px 12px;
+  }
+}
