@@ -1,8 +1,10 @@
 package api
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -49,9 +51,11 @@ func UploadHandler(store storage.StorageService, repo database.PhotoRepository, 
 			Path:      path,
 			Tags:      tags,
 			CreatedAt: time.Now(),
+			Data:      base64.StdEncoding.EncodeToString(fileBytes),
 		}
 
 		if err := repo.InsertPhoto(r.Context(), photo); err != nil {
+			log.Println("[ERROR]: ", err.Error())
 			http.Error(w, "failed to save to database", http.StatusInternalServerError)
 			return
 		}

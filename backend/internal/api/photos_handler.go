@@ -21,7 +21,6 @@ type PhotosResponse struct {
 
 func ListPhotosHandler(store storage.StorageService, repo database.PhotoRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Parse tags
 		var tags []string
 		tagsParam := r.URL.Query().Get("tags")
 		if tagsParam != "" {
@@ -33,7 +32,6 @@ func ListPhotosHandler(store storage.StorageService, repo database.PhotoReposito
 			}
 		}
 
-		// Parse limit (default 20)
 		limit := 20
 		if l := r.URL.Query().Get("limit"); l != "" {
 			if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
@@ -41,7 +39,6 @@ func ListPhotosHandler(store storage.StorageService, repo database.PhotoReposito
 			}
 		}
 
-		// Parse cursor (RFC3339 timestamp of last item's created_at)
 		var cursor *time.Time
 		if c := r.URL.Query().Get("cursor"); c != "" {
 			t, err := time.Parse(time.RFC3339Nano, c)
@@ -64,7 +61,6 @@ func ListPhotosHandler(store storage.StorageService, repo database.PhotoReposito
 			return
 		}
 
-		// Load file data for each photo
 		for i := range photos {
 			fileBytes, err := store.GetFoto(photos[i].Path)
 			if err != nil {
@@ -74,7 +70,6 @@ func ListPhotosHandler(store storage.StorageService, repo database.PhotoReposito
 			photos[i].Data = base64.StdEncoding.EncodeToString(fileBytes)
 		}
 
-		// Build response with next cursor
 		resp := PhotosResponse{Photos: photos}
 		if len(photos) == limit {
 			lastPhoto := photos[len(photos)-1]

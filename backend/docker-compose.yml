@@ -8,4 +8,4 @@ services:
       POSTGRES_PASSWORD: postgresql
       POSTGRES_DB: insta
     ports:
-      - "5432:5432"
+      - "5732:5432"
