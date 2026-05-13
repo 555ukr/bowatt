@@ -14,6 +14,7 @@ import (
 	"github.com/555ukr/bowatt/pkg/database"
 	"github.com/555ukr/bowatt/pkg/storage"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -22,13 +23,19 @@ func main() {
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 
-	store := storage.NewLocalStorageService("./uploads")
-	os.MkdirAll("./uploads", 0o755)
+	if err := godotenv.Load(); err != nil {
+		log.Println("no .env file found, using environment variables")
+	}
 
-	// Connect to PostgreSQL
+	uploadPath := os.Getenv("UPLOAD_PATH")
+	if uploadPath == "" {
+		log.Fatal("UPLOAD_PATH is not set")
+	}
+	store := storage.NewLocalStorageService(uploadPath)
+
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		dsn = "postgres://insta:insta_secret@localhost:5432/insta_like?sslmode=disable"
+		log.Fatal("DATABASE_URL is not set")
 	}
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
