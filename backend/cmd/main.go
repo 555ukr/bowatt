@@ -52,6 +52,7 @@ func main() {
 	router.Use(api.LoggingMiddleware)
 	router.HandleFunc("/health", api.HealthHandler).Methods("GET")
 	router.HandleFunc("/upload", api.UploadHandler(store, repo, hub)).Methods("POST")
+	router.HandleFunc("/photos", api.ListPhotosHandler(store, repo)).Methods("GET")
 	router.HandleFunc("/ws", hub.Handler())
 
 	srv := &http.Server{

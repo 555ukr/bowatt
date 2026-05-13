@@ -62,6 +62,58 @@ paths:
                 type: string
                 example: "failed to save file"
 
+  /photos:
+    get:
+      summary: List photos
+      description: Returns photos from the database with their file content (base64-encoded). Supports cursor-based pagination using the created_at timestamp and optional tag filtering.
+      operationId: listPhotos
+      parameters:
+        - name: tags
+          in: query
+          required: false
+          description: Comma-separated list of tags to filter by. Returns photos matching any of the provided tags.
+          schema:
+            type: string
+          example: "sunset,beach"
+        - name: cursor
+          in: query
+          required: false
+          description: Pagination cursor. Pass the next_cursor value from the previous response to fetch the next page. Format is RFC3339Nano timestamp.
+          schema:
+            type: string
+            format: date-time
+          example: "2026-05-13T14:30:00.123456789Z"
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of photos to return per page. Defaults to 20.
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+          example: 10
+      responses:
+        "200":
+          description: Paginated list of photos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PhotosResponse"
+        "400":
+          description: Invalid cursor format
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "invalid cursor format, use RFC3339"
+        "500":
+          description: Internal server error (database or file read failure)
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "failed to query photos"
+
 components:
   schemas:
     Photo:
@@ -82,3 +134,28 @@ components:
           format: date-time
           description: Timestamp when the photo was uploaded
           example: "2026-05-13T14:30:00Z"
+
+    PhotoWithData:
+      allOf:
+        - $ref: "#/components/schemas/Photo"
+        - type: object
+          properties:
+            Data:
+              type: string
+              format: byte
+              description: Base64-encoded file content. Omitted if the file could not be read.
+              example: "/9j/4AAQSkZJRg..."
+
+    PhotosResponse:
+      type: object
+      properties:
+        photos:
+          type: array
+          items:
+            $ref: "#/components/schemas/PhotoWithData"
+          description: List of photos for the current page
+        next_cursor:
+          type: string
+          format: date-time
+          description: Cursor for the next page. Absent when there are no more results. Pass this value as the cursor query parameter to fetch the next page.
+          example: "2026-05-13T14:30:00.123456789Z"
