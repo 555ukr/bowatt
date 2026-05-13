@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/555ukr/bowatt/internal/api"
+	"github.com/555ukr/bowatt/internal/websocket"
 	"github.com/555ukr/bowatt/pkg/database"
 	"github.com/555ukr/bowatt/pkg/storage"
 	"github.com/gorilla/mux"
@@ -24,12 +25,12 @@ func main() {
 	flag.Parse()
 
 	if err := godotenv.Load(); err != nil {
-		log.Println("no .env file found, using environment variables")
+		log.Println("[ERROR]: no .env file found, using environment variables")
 	}
 
 	uploadPath := os.Getenv("UPLOAD_PATH")
 	if uploadPath == "" {
-		log.Fatal("UPLOAD_PATH is not set")
+		log.Fatal("[ERROR]: UPLOAD_PATH is not set")
 	}
 	store := storage.NewLocalStorageService(uploadPath)
 
@@ -39,17 +40,19 @@ func main() {
 	}
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatalf("failed to connect to database: %v", err)
+		log.Fatalf("[ERROR]: failed to connect to database: %v", err)
 	}
 	defer db.Close()
 
 	repo := database.NewPostgresPhotoRepository(db)
 
+	hub := websocket.NewHub()
+
 	router := mux.NewRouter()
 	router.Use(api.LoggingMiddleware)
 	router.HandleFunc("/health", api.HealthHandler).Methods("GET")
-	router.HandleFunc("/upload", api.UploadHandler(store, repo)).Methods("POST")
-	http.Handle("/", router)
+	router.HandleFunc("/upload", api.UploadHandler(store, repo, hub)).Methods("POST")
+	router.HandleFunc("/ws", hub.Handler())
 
 	srv := &http.Server{
 		Handler:      router,
@@ -59,7 +62,7 @@ func main() {
 	}
 
 	go func() {
-		log.Println("web server is about start")
+		log.Println("[INFO]: web server is about start")
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
@@ -74,6 +77,6 @@ func main() {
 	defer cancel()
 
 	srv.Shutdown(ctx)
-	log.Println("shutting down")
+	log.Println("[INFO]: shutting down")
 	os.Exit(0)
 }

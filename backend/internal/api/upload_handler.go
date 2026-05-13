@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/555ukr/bowatt/internal/websocket"
 	"github.com/555ukr/bowatt/pkg/database"
 	"github.com/555ukr/bowatt/pkg/models"
 	"github.com/555ukr/bowatt/pkg/storage"
 )
 
-func UploadHandler(store storage.StorageService, repo database.PhotoRepository) http.HandlerFunc {
+func UploadHandler(store storage.StorageService, repo database.PhotoRepository, hub *websocket.Hub) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		file, header, err := r.FormFile("photo")
 		if err != nil {
@@ -53,6 +54,11 @@ func UploadHandler(store storage.StorageService, repo database.PhotoRepository) 
 		if err := repo.InsertPhoto(r.Context(), photo); err != nil {
 			http.Error(w, "failed to save to database", http.StatusInternalServerError)
 			return
+		}
+
+		err = hub.Broadcast(photo)
+		if err != nil {
+			// TODO: rollback insert and return error to the user
 		}
 
 		w.Header().Set("Content-Type", "application/json")
