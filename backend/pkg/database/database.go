@@ -8,12 +8,10 @@ import (
 	"github.com/lib/pq"
 )
 
-// PhotoRepository defines the interface for photo persistence.
 type PhotoRepository interface {
 	InsertPhoto(ctx context.Context, photo models.Photo) error
 }
 
-// PostgresPhotoRepository implements PhotoRepository using PostgreSQL.
 type PostgresPhotoRepository struct {
 	DB *sql.DB
 }
