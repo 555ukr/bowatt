@@ -1,0 +1,11 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgresql
+      POSTGRES_PASSWORD: postgresql
+      POSTGRES_DB: insta
+    ports:
+      - "5432:5432"

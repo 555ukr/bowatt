@@ -1,0 +1,84 @@
+openapi: 3.0.3
+info:
+  title: Insta-Like API
+  description: Photo upload and sharing service
+  version: 0.1.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns 200 OK if the service is running.
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Service is healthy
+
+  /upload:
+    post:
+      summary: Upload a photo
+      description: Uploads a photo file with optional comma-separated tags. The file is saved to local storage and metadata is persisted to the database.
+      operationId: uploadPhoto
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - photo
+              properties:
+                photo:
+                  type: string
+                  format: binary
+                  description: The image file to upload
+                tags:
+                  type: string
+                  description: Comma-separated list of tags (e.g. "sunset, beach, vacation")
+                  example: "sunset, beach, vacation"
+      responses:
+        "201":
+          description: Photo uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Photo"
+        "400":
+          description: Bad request (missing photo field or invalid form)
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "missing 'photo' field"
+        "500":
+          description: Internal server error (file save or database failure)
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "failed to save file"
+
+components:
+  schemas:
+    Photo:
+      type: object
+      properties:
+        Path:
+          type: string
+          description: File path where the photo is stored
+          example: "./uploads/sunset.jpg"
+        Tags:
+          type: array
+          items:
+            type: string
+          description: List of tags associated with the photo
+          example: ["sunset", "beach", "vacation"]
+        CreatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the photo was uploaded
+          example: "2026-05-13T14:30:00Z"
