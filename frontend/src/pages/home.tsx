@@ -12,7 +12,11 @@ interface PhotosResponse {
   next_cursor?: string;
 }
 
-export default function Home() {
+interface HomeProps {
+  newPhotos: Photo[];
+}
+
+export default function Home({ newPhotos}: HomeProps) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +51,25 @@ export default function Home() {
   useEffect(() => {
     fetchPhotos('');
   }, [fetchPhotos]);
+
+  useEffect(() => {
+    if (newPhotos.length > 0) {
+      const activeTags = filterTags
+        .split(',')
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean);
+
+      const matching = activeTags.length > 0
+        ? newPhotos.filter((photo) =>
+            photo.Tags?.some((tag) => activeTags.includes(tag.toLowerCase()))
+          )
+        : newPhotos;
+
+      if (matching.length > 0) {
+        setPhotos((prev) => [...matching, ...prev]);
+      }
+    }
+  }, [newPhotos, filterTags]);
 
   const handleFilter = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
