@@ -49,6 +49,7 @@ func main() {
 	hub := websocket.NewHub()
 
 	router := mux.NewRouter()
+	router.Use(api.CORSMiddleware)
 	router.Use(api.LoggingMiddleware)
 	router.HandleFunc("/health", api.HealthHandler).Methods("GET")
 	router.HandleFunc("/upload", api.UploadHandler(store, repo, hub)).Methods("POST")

@@ -1,10 +1,47 @@
+import { useState, useEffect } from 'react';
+
+interface Photo {
+  Path: string;
+  Tags: string[];
+  CreatedAt: string;
+  Data?: string;
+}
+
+interface PhotosResponse {
+  photos: Photo[];
+  next_cursor?: string;
+}
+
 export default function Home() {
-  // Placeholder data — replace with API call later
-  const photos = [
-    { path: 'https://picsum.photos/600/400?random=1', tags: ['nature', 'sunset'], createdAt: '2026-05-13T14:30:00Z' },
-    { path: 'https://picsum.photos/600/400?random=2', tags: ['city', 'night'], createdAt: '2026-05-12T10:00:00Z' },
-    { path: 'https://picsum.photos/600/400?random=3', tags: ['food'], createdAt: '2026-05-11T08:15:00Z' },
-  ];
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/photos');
+        if (!response.ok) {
+          throw new Error('Network response was not okay');
+        }
+        const data: PhotosResponse = await response.json();
+        setPhotos(data.photos || []);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unexpected error occurred');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPhotos();
+  }, []);
+
+  if (loading) return  <div className="empty-state">Loading...</div>;
+  if (error) return  <div className="empty-state">Error: {error}</div>;
 
   if (photos.length === 0) {
     return <div className="empty-state">No photos yet. Upload your first one!</div>;
@@ -14,15 +51,18 @@ export default function Home() {
     <div className="feed">
       {photos.map((photo, i) => (
         <div className="feed-card" key={i}>
-          <img src={photo.path} alt="photo" />
+          <img
+            src={photo.Data ? `data:image/jpeg;base64,${photo.Data}` : photo.Path}
+            alt="photo"
+          />
           <div className="feed-card-info">
             <div className="feed-card-tags">
-              {photo.tags.map((tag) => (
+              {photo.Tags?.map((tag) => (
                 <span className="tag" key={tag}>#{tag}</span>
               ))}
             </div>
             <div className="feed-card-date">
-              {new Date(photo.createdAt).toLocaleDateString()}
+              {new Date(photo.CreatedAt).toLocaleDateString()}
             </div>
           </div>
         </div>
