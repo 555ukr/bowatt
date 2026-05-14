@@ -171,3 +171,48 @@ body {
     padding: 10px 12px;
   }
 }
+
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.filter-bar input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #dbdbdb;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.filter-bar input:focus {
+  outline: none;
+  border-color: #0095f6;
+}
+
+.filter-bar button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: #0095f6;
+  color: #fff;
+  transition: background 0.2s;
+}
+
+.filter-bar button:hover {
+  background: #007bd6;
+}
+
+.filter-bar button[type="button"] {
+  background: #efefef;
+  color: #262626;
+}
+
+.filter-bar button[type="button"]:hover {
+  background: #dbdbdb;
+}

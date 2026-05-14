@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface Photo {
   Path: string;
@@ -16,57 +16,91 @@ export default function Home() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filterTags, setFilterTags] = useState('');
 
-  useEffect(() => {
-    const fetchPhotos = async () => {
-      try {
-        const response = await fetch('http://127.0.0.1:8000/photos');
-        if (!response.ok) {
-          throw new Error('Network response was not okay');
-        }
-        const data: PhotosResponse = await response.json();
-        setPhotos(data.photos || []);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('An unexpected error occurred');
-        }
-      } finally {
-        setLoading(false);
+  const fetchPhotos = useCallback(async (tags: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      if (tags.trim()) {
+        params.set('tags', tags.trim());
       }
-    };
-
-    fetchPhotos();
+      const url = `http://127.0.0.1:8000/photos?${params.toString()}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Network response was not okay');
+      }
+      const data: PhotosResponse = await response.json();
+      setPhotos(data.photos || []);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) return  <div className="empty-state">Loading...</div>;
-  if (error) return  <div className="empty-state">Error: {error}</div>;
+  useEffect(() => {
+    fetchPhotos('');
+  }, [fetchPhotos]);
 
-  if (photos.length === 0) {
-    return <div className="empty-state">No photos yet. Upload your first one!</div>;
-  }
+  const handleFilter = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    fetchPhotos(filterTags);
+  };
 
   return (
-    <div className="feed">
-      {photos.map((photo, i) => (
-        <div className="feed-card" key={i}>
-          <img
-            src={photo.Data ? `data:image/jpeg;base64,${photo.Data}` : photo.Path}
-            alt="photo"
-          />
-          <div className="feed-card-info">
-            <div className="feed-card-tags">
-              {photo.Tags?.map((tag) => (
-                <span className="tag" key={tag}>#{tag}</span>
-              ))}
+    <>
+      <form className="filter-bar" onSubmit={handleFilter}>
+        <input
+          type="text"
+          placeholder="Filter by tags (e.g. sunset, beach)"
+          value={filterTags}
+          onChange={(e) => setFilterTags(e.target.value)}
+        />
+        <button type="submit">Filter</button>
+        {filterTags && (
+          <button
+            type="button"
+            onClick={() => { setFilterTags(''); fetchPhotos(''); }}
+          >
+            Clear
+          </button>
+        )}
+      </form>
+
+      {loading && <div className="empty-state">Loading...</div>}
+      {error && <div className="empty-state">Error: {error}</div>}
+      {!loading && !error && photos.length === 0 && (
+        <div className="empty-state">No photos found.</div>
+      )}
+
+      {!loading && !error && photos.length > 0 && (
+        <div className="feed">
+          {photos.map((photo, i) => (
+            <div className="feed-card" key={i}>
+              <img
+                src={photo.Data ? `data:image/jpeg;base64,${photo.Data}` : photo.Path}
+                alt={photo.Tags?.join(', ') || 'uploaded content'}
+              />
+              <div className="feed-card-info">
+                <div className="feed-card-tags">
+                  {photo.Tags?.map((tag) => (
+                    <span className="tag" key={tag}>#{tag}</span>
+                  ))}
+                </div>
+                <div className="feed-card-date">
+                  {new Date(photo.CreatedAt).toLocaleDateString()}
+                </div>
+              </div>
             </div>
-            <div className="feed-card-date">
-              {new Date(photo.CreatedAt).toLocaleDateString()}
-            </div>
-          </div>
+          ))}
         </div>
-      ))}
-    </div>
+      )}
+    </>
   );
 }
