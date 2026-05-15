@@ -1,7 +1,6 @@
 services:
   postgres:
     image: postgres:16-alpine
-
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgresql
@@ -9,3 +8,23 @@ services:
       POSTGRES_DB: insta
     ports:
       - "5732:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://postgresql:postgresql@postgres:5432/insta?sslmode=disable
+      UPLOAD_PATH: /app/uploads
+      SERVER_ADDR: 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - uploads:/app/uploads
+
+volumes:
+  pgdata:
+  uploads:

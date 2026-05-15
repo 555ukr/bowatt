@@ -56,9 +56,14 @@ func main() {
 	router.HandleFunc("/photos", api.ListPhotosHandler(store, repo)).Methods("GET")
 	router.HandleFunc("/ws", hub.Handler())
 
+	addr := os.Getenv("SERVER_ADDR")
+	if addr == "" {
+		addr = "127.0.0.1:8000"
+	}
+
 	srv := &http.Server{
 		Handler:      router,
-		Addr:         "127.0.0.1:8000",
+		Addr:         addr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}

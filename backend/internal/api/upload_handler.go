@@ -13,11 +13,12 @@ import (
 	"github.com/555ukr/bowatt/pkg/database"
 	"github.com/555ukr/bowatt/pkg/models"
 	"github.com/555ukr/bowatt/pkg/storage"
+	"github.com/google/uuid"
 )
 
 func UploadHandler(store storage.StorageService, repo database.PhotoRepository, hub *websocket.Hub) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		file, header, err := r.FormFile("photo")
+		file, _, err := r.FormFile("photo")
 		if err != nil {
 			http.Error(w, "missing 'photo' field", http.StatusBadRequest)
 			return
@@ -41,7 +42,9 @@ func UploadHandler(store storage.StorageService, repo database.PhotoRepository, 
 			}
 		}
 
-		path, err := store.UploadFoto(header.Filename, fileBytes)
+		randomId := uuid.New()
+
+		path, err := store.UploadFoto(randomId.String(), fileBytes)
 		if err != nil {
 			http.Error(w, "failed to save file", http.StatusInternalServerError)
 			return
