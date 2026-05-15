@@ -20,6 +20,7 @@ services:
       DATABASE_URL: postgres://postgresql:postgresql@postgres:5432/insta?sslmode=disable
       UPLOAD_PATH: /app/uploads
       SERVER_ADDR: 0.0.0.0:8000
+      NORMALIZATION: true 
     ports:
       - "8000:8000"
     volumes:

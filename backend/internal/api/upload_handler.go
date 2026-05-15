@@ -6,12 +6,14 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/555ukr/bowatt/internal/websocket"
 	"github.com/555ukr/bowatt/pkg/database"
+	imagenormalization "github.com/555ukr/bowatt/pkg/image_normalization"
 	"github.com/555ukr/bowatt/pkg/models"
 	"github.com/555ukr/bowatt/pkg/storage"
 	"github.com/google/uuid"
@@ -32,6 +34,12 @@ func UploadHandler(store storage.StorageService, repo database.PhotoRepository, 
 			return
 		}
 
+		contentType := http.DetectContentType(fileBytes)
+		if !strings.HasPrefix(contentType, "image/") {
+			http.Error(w, "file is not a valid image", http.StatusBadRequest)
+			return
+		}
+
 		tagsRaw := r.FormValue("tags")
 		var tags []string
 		if tagsRaw != "" {
@@ -45,6 +53,18 @@ func UploadHandler(store storage.StorageService, repo database.PhotoRepository, 
 
 		ext := filepath.Ext(header.Filename)
 		fileName := uuid.New().String() + ext
+
+		if os.Getenv("NORMALIZATION") == "true" {
+			norma := imagenormalization.NewNormalizationService()
+
+			normalizedImage, err := norma.Normalize(fileBytes)
+			if err != nil {
+				http.Error(w, "failed to normalize file", http.StatusInternalServerError)
+				return
+			}
+
+			fileBytes = normalizedImage
+		}
 
 		path, err := store.UploadFoto(fileName, fileBytes)
 		if err != nil {
@@ -67,7 +87,7 @@ func UploadHandler(store storage.StorageService, repo database.PhotoRepository, 
 
 		err = hub.Broadcast(photo)
 		if err != nil {
-			// TODO: rollback insert and return error to the user
+			log.Println("[INFO]: web server is about start ", err.Error())
 		}
 
 		w.Header().Set("Content-Type", "application/json")
