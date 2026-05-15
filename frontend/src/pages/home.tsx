@@ -52,26 +52,32 @@ export default function Home({ newPhotos}: HomeProps) {
     fetchPhotos('');
   }, [fetchPhotos]);
 
+  const [processedCount, setProcessedCount] = useState(0);
+
   useEffect(() => {
-    if (newPhotos.length > 0) {
+    if (newPhotos.length > processedCount) {
+      const unprocessed = newPhotos.slice(0, newPhotos.length - processedCount);
+
       const activeTags = filterTags
         .split(',')
         .map((t) => t.trim().toLowerCase())
         .filter(Boolean);
 
       const matching = activeTags.length > 0
-        ? newPhotos.filter((photo) =>
+        ? unprocessed.filter((photo) =>
             photo.Tags?.some((tag) => activeTags.includes(tag.toLowerCase()))
           )
-        : newPhotos;
+        : unprocessed;
 
       if (matching.length > 0) {
         setPhotos((prev) => [...matching, ...prev]);
       }
-    }
-  }, [newPhotos, filterTags]);
 
-  const handleFilter = (e: React.FormEvent<HTMLFormElement>) => {
+      setProcessedCount(newPhotos.length);
+    }
+  }, [newPhotos, filterTags, processedCount]);
+
+  const handleFilter = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     fetchPhotos(filterTags);
   };
