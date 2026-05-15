@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -18,7 +19,7 @@ import (
 
 func UploadHandler(store storage.StorageService, repo database.PhotoRepository, hub *websocket.Hub) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		file, _, err := r.FormFile("photo")
+		file, header, err := r.FormFile("photo")
 		if err != nil {
 			http.Error(w, "missing 'photo' field", http.StatusBadRequest)
 			return
@@ -42,9 +43,10 @@ func UploadHandler(store storage.StorageService, repo database.PhotoRepository, 
 			}
 		}
 
-		randomId := uuid.New()
+		ext := filepath.Ext(header.Filename)
+		fileName := uuid.New().String() + ext
 
-		path, err := store.UploadFoto(randomId.String(), fileBytes)
+		path, err := store.UploadFoto(fileName, fileBytes)
 		if err != nil {
 			http.Error(w, "failed to save file", http.StatusInternalServerError)
 			return
